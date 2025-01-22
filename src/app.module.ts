@@ -6,6 +6,7 @@ import typeOrmConfig from './configs/typeOrm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuarioModule } from './usuario/usuario.module';
 import { TurnosModule } from './turnos/turnos.module';
+// import { SemanasModule } from './semanas/semanas.module';
 
 @Module({
   imports:[
@@ -19,7 +20,8 @@ import { TurnosModule } from './turnos/turnos.module';
         configService.get('typeOrm'),
     }),
     UsuarioModule,
-    TurnosModule,],
+    TurnosModule,
+    ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -5,6 +5,8 @@ import { TurnoLaboral } from 'src/entities/turnos.entity';
 import { Usuario } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { parse } from 'date-fns';
+import { Semana } from 'src/entities/semanas.entity';
+import { HorasTrabajadas } from 'src/entities/horasTrabajadas.entity';
 
 @Injectable()
 export class TurnosService {
@@ -12,7 +14,11 @@ export class TurnosService {
         @InjectRepository(TurnoLaboral)
         private readonly turnoLaboraRepository: Repository<TurnoLaboral>,
         @InjectRepository(Usuario)
-        private readonly usuarioRespository: Repository<Usuario>
+        private readonly usuarioRespository: Repository<Usuario>,
+        @InjectRepository(Semana)
+        private readonly semanasRepository: Repository<Semana>,
+        @InjectRepository(HorasTrabajadas)
+        private readonly horasTrabajadasRepository: Repository<HorasTrabajadas>
     ){}
 
     
@@ -59,42 +65,77 @@ export class TurnosService {
         return totalHorasString;
     }
     
-    async agendarTurno(nuevoTurno: AgendarTurnoDTO): Promise<AgendarTurnoDTO | string>{
-
-        const { empleado, fecha, horaIngreso, horaSalida } = nuevoTurno;
-        const fechaParseada = parse(fecha, "dd/MM/yyy", new Date())
-        
-        try{
-            const empleadoEncontrado = await this.usuarioRespository.findOneBy({nombre: empleado});
-            if (!empleadoEncontrado) throw new NotFoundException("Empleado no encontrado");
-
-            const fechaActual = new Date();
-                if(fechaParseada < fechaActual) throw new BadRequestException("La fecha del turno debe ser mayo a la actual");
-        
-            let totalHoras = this.calcularHorasTotales(horaIngreso, horaSalida);
-
-            const agendarTurno: TurnoLaboral = new TurnoLaboral();
-                agendarTurno.dia = nuevoTurno.dia 
-                agendarTurno.fecha = nuevoTurno.fecha
-                agendarTurno.horaIngreso = nuevoTurno.horaIngreso
-                agendarTurno.horaSalida = nuevoTurno.horaSalida
-                agendarTurno.totalHoras = totalHoras
-                agendarTurno.usuario = empleadoEncontrado
-            
-                await this.turnoLaboraRepository.save(agendarTurno);
-                await this.usuarioRespository.save(empleadoEncontrado);
-
-            return {
-                empleado: empleadoEncontrado.nombre,
-                fecha: agendarTurno.fecha,
-                dia: agendarTurno.dia,
-                horaIngreso: agendarTurno.horaIngreso,
-                horaSalida: agendarTurno.horaSalida
-            };
-        
-        }catch(err){
-            throw new InternalServerErrorException(`Ha ocurrido un error ${err}`)
+    async agendarTurno(nuevosTurnos: AgendarTurnoDTO[]): Promise<(AgendarTurnoDTO | string)[]> {
+        try {
+            const resultados = await Promise.all(
+                nuevosTurnos.map(async (nuevoTurno) => {
+                    try {
+                        const { empleado, fecha, horaIngreso, horaSalida, dia } = nuevoTurno;
+                        const fechaParseada = parse(fecha, "dd/MM/yyyy", new Date());
+    
+                        const empleadoEncontrado = await this.usuarioRespository.findOneBy({ nombre: empleado });
+                        if (!empleadoEncontrado) {
+                            throw new Error(`Empleado ${empleado} no encontrado`);
+                        }
+    
+                        const fechaActual = new Date();
+                        if (fechaParseada < fechaActual) {
+                            throw new Error(`La fecha del turno para ${empleado} debe ser mayor a la actual`);
+                        }
+    
+                        const totalHoras = this.calcularHorasTotales(horaIngreso, horaSalida);
+    
+                        const agendarTurno: TurnoLaboral = new TurnoLaboral();
+                        agendarTurno.dia = dia;
+                        agendarTurno.fecha = nuevoTurno.fecha;
+                        agendarTurno.horaIngreso = horaIngreso;
+                        agendarTurno.horaSalida = horaSalida;
+                        agendarTurno.totalHoras = totalHoras;
+                        agendarTurno.usuario = empleadoEncontrado;
+    
+                        await this.turnoLaboraRepository.save(agendarTurno);
+                        return {
+                            empleado: empleadoEncontrado.nombre,
+                            fecha: agendarTurno.fecha,
+                            dia: agendarTurno.dia,
+                            horaIngreso: agendarTurno.horaIngreso,
+                            horaSalida: agendarTurno.horaSalida,
+                        };
+                    } catch (error) {
+                        return `Error al procesar el turno para ${nuevoTurno.empleado}: ${error.message}`;
+                    }
+                })
+            );
+            return resultados; 
+        } catch (error) {
+            throw new InternalServerErrorException(`Ha ocurrido un error general: ${error.message}`);
         }
-
     }
+
+    convertirHorasMinutos(arrayHoraMinuto: string[]): string {
+
+        const totalMinutos = arrayHoraMinuto.reduce((acumulador, horaMinuto) => {
+            const [horas, minutos] = horaMinuto.split(':').map(Number);  
+            return acumulador + horas * 60 + minutos;
+        }, 0);
+    
+        const horasTotales = Math.floor(totalMinutos / 60); 
+        const minutosRestantes = totalMinutos % 60; 
+    
+        const totalHorasString = `${String(horasTotales).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}`;
+        
+        return totalHorasString;
+    }
+    
+ 
+    async totalHorasTrabajadas(horasTotalesEmpleado: []){
+
+        const { empleado, horasTrabajadas, dia, fecha } = horasTotalesEmpleado;
+
+        const totalHoras = convertirHorasMinutos(horasTrabajadas);
+
+        const nuevaSemana = new Semana()
+        const inicioSemana = fecha.filter(fechas => fechas =)
+    }
+
 }

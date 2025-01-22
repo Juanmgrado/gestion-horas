@@ -7,11 +7,11 @@ export class TurnosController {
     constructor(
         private readonly turnosService: TurnosService){}
     
-    @Post("agendarTurno")
-    @HttpCode(201)    
-    async agendarTurno(
-        @Body()nuevoTurno: AgendarTurnoDTO
-    ): Promise<AgendarTurnoDTO | string>{
-        return  await this.turnosService.agendarTurno(nuevoTurno)
-    }
+        @Post("agendarTurno")
+        @HttpCode(201)
+        async agendarTurno(
+            @Body() nuevoTurno: AgendarTurnoDTO[]
+        ): Promise<(string | AgendarTurnoDTO)[]> {
+            return this.turnosService.agendarTurno(nuevoTurno);
+        }
 }
