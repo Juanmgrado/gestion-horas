@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuarioModule } from './usuario/usuario.module';
 import { TurnosModule } from './turnos/turnos.module';
 // import { SemanasModule } from './semanas/semanas.module';
+import { AutenticacionModule } from './autenticacion/autenticacion.module';
 
 @Module({
   imports:[
@@ -21,6 +22,7 @@ import { TurnosModule } from './turnos/turnos.module';
     }),
     UsuarioModule,
     TurnosModule,
+    AutenticacionModule,
     ],
   controllers: [AppController],
   providers: [AppService],

@@ -13,9 +13,9 @@ export class UsuarioService {
         private readonly UsuarioRepository: Repository<Usuario>
     ){}
 
-    async agregarUsuario(nuevoUsuario: nuevoUsuarioDto): Promise<Partial<nuevoUsuarioDto>>{
+    async agregarUsuario(nuevoUsuario: nuevoUsuarioDto): Promise<Partial<Usuario>>{
 
-        const { nombre } = nuevoUsuario;
+        const { nombre, telefono } = nuevoUsuario;
         
         const comprobarNombre = await this.UsuarioRepository.findOneBy({nombre});
             if(comprobarNombre) throw new ConflictException( 'El usuario ya se encuentra registrado');
@@ -24,10 +24,13 @@ export class UsuarioService {
 
             const usuario: Usuario = new Usuario()
             usuario.nombre = nuevoUsuario.nombre
+            usuario.telefono = nuevoUsuario.telefono
             usuario.contraseña = nuevoUsuario.contraseña
                 await this.UsuarioRepository.save(usuario);
 
-            return {nombre: usuario.nombre};
+            return {
+                id: usuario.id,
+                nombre: usuario.nombre};
         
         }catch(err){
             throw new InternalServerErrorException({message: 'No se pudo registrar el usuario', err});
@@ -43,7 +46,7 @@ export class UsuarioService {
             const usuarioEncontrado = await this.UsuarioRepository.findOneBy({nombre})
                 if (!usuarioEncontrado) new NotFoundException("Usuario no encontrado")
 
-            usuarioEncontrado.active = false;
+            usuarioEncontrado.estaActivo = false;
 
             return "Usuario eliminado con éxito."
         

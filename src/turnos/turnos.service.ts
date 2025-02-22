@@ -132,7 +132,7 @@ export class TurnosService {
 
         const { empleado, horasTrabajadas, dia, fecha } = horasTotalesEmpleado;
 
-        const totalHoras = convertirHorasMinutos(horasTrabajadas);
+        const totalHoras = this.convertirHorasMinutos(horasTrabajadas);
 
         const nuevaSemana = new Semana()
         const inicioSemana = fecha.filter(fechas => fechas =)

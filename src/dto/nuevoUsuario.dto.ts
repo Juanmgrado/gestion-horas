@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsStrongPassword, Length, Matches, Validate } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsStrongPassword, Length, Matches, Validate } from "class-validator";
 import { VerificadorContraseña } from "src/decoradores/verificarContraseña.decorator";
 
 export class nuevoUsuarioDto{
@@ -12,6 +12,9 @@ export class nuevoUsuarioDto{
       })
     nombre: string;
 
+    @IsNumber()
+    telefono: number;
+    
     @IsNotEmpty({message: "La contraseña no puede estar vacía"})
     @IsStrongPassword({
     minLength: 8,           

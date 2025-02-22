@@ -2,14 +2,18 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TurnoLaboral } from "./turnos.entity";
 import { HorasTrabajadas } from "./horasTrabajadas.entity";
 import { Semana } from "./semanas.entity";
+import { UsuarioEstado } from "src/usuario/enums/usuarioEstado.enum";
 
 @Entity('USUARIOS')
 export class Usuario{
     @PrimaryGeneratedColumn('uuid')
-    uuid: string;
+    id: string;
 
     @Column({nullable: false, unique: true})
     nombre: string;
+
+    @Column({nullable: true})
+    telefono: number;
 
     @Column({nullable: false})
     contraseña: string;
@@ -18,7 +22,10 @@ export class Usuario{
     admin: boolean;
 
     @Column({default: true})
-    active: boolean;
+    estaActivo: boolean;
+
+    @Column({type: "enum", default: UsuarioEstado.offline })
+    estado: UsuarioEstado;
 
     @OneToMany(() => HorasTrabajadas, (horasTrabajadas) => horasTrabajadas.usuario)
     horasTrabajadas: HorasTrabajadas;
